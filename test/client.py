@@ -1,4 +1,11 @@
-# header goes here
+################################################################################################
+# Author: Orion Crocker
+# Filename: client.py
+# Date: 05/08/20
+# 
+# Client
+# 	Test client
+################################################################################################
 
 import socket
 import sys
@@ -12,18 +19,18 @@ port = int(sys.argv[2])
 
 sock.connect((host, port))
 
-message = 'Is this thing on?'
-data = message.encode()
-sock.send(data)
+message = sys.argv[3]
+message = message.encode()
+sock.send(message)
+print('Sent ' + str(len(message)) + ' bytes\n')
 
-i = 0
 while(1):
-    data = sock.recv(1000000)
-    i += 1
-    if (i < 5):
-        print(data)
+    data = sock.recv(10)
     if not data:
-        break
+      break 
+
+    message = data.decode()
+    print("'" + message + "'")
     print('Recieved ' + str(len(data)) + ' bytes')
 
 sock.close()
