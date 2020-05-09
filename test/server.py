@@ -25,7 +25,7 @@ print('Client ' + str(address[1]) + ' connected to server from ' + str(address[0
 
 data = connection.recv(1024)
 message = data.decode()
-print(message)
+print(str(address[0]) + ': ' + message)
 
 connection.send(data)
 
