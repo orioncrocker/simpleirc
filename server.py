@@ -9,12 +9,12 @@
 
 import socket
 import sys
-import select
-import _thread
+import threading
 
-# default values
+# global values
 default_port = 2000
 max_clients = 3
+clients = []
 
 
 def main():
@@ -24,42 +24,37 @@ def main():
 
   sock.bind((host, port))
   print('Listening on port ' + str(port))
-  start_server(sock)
+  listen(sock)
   sock.close()
 
 
-def start_server(sock):
+def listen(sock):
   sock.listen(max_clients)
-  clients = []
 
   while True:
-    # listen for connections from new clients
-    if len(clients) <= max_clients:
-      try:
-        connection, address = sock.accept()
-        if connection:
-          print('Client ' + str(address[1]) + ' connected to server from ' + str(address[0]))
-          clients.append(connection)
-      except:
-        continue
+    connection, address = sock.accept()
+    clients.append(connection)
+    print('Client ' + str(address[1]) + ' connected to server from ' + str(address[0]))
 
-    for client in clients:
-      try:
-        data = client.recv(1024)
-        if data:
-          message = data.decode()
-          print(message)
-          broadcast(message, clients)
-        else:
-          clients.remove(client)
-      except:
-        continue
-
-    print("Total clients: " + str(len(clients)))
-
-    print('Total clients: ' + str(len(clients)))
+    x = threading.Thread(target=client, args=(connection, address))
+    x.start()
+    print("Clients connected: " + str(len(clients)))
 
   connection.close()
+
+
+def client(connection, address):
+  message = "Welcome to the server!"
+  message = message.encode()
+  connection.send(message)
+
+  while True:
+    data = connection.recv(1024)
+    if data:
+      message = data.decode()
+      message = "<" + address[0] + "> " + message
+      print(message)
+      broadcast(message)
 
 
 def get_message(connection):
@@ -68,8 +63,10 @@ def get_message(connection):
     return data.decode()
 
 
-def broadcast(message, clients):
+def broadcast(message):
+  message = message.encode()
   for client in clients:
     client.send(message)
+
 
 main()

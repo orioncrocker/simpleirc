@@ -9,29 +9,33 @@
 
 import socket
 import sys
+import threading
 
+# global values
 
 def main():
-  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-  # server address
   host = sys.argv[1]
-  # port server is listening on
   port = int(sys.argv[2])
+
+  sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
   sock.connect((host, port))
 
+  read = threading.Thread(target=listen, args=[sock])
+  read.start()
+
   while True:
-    data = sock.recv(1024)
-
-    if data:
-      message = data.decode()
-      print(message)
-
-    if not data:
-      message = sys.stdin.readline()
-      sock.send(message)
-      sys.stdout.flush()
+    message = sys.stdin.readline()
+    data = message.encode()
+    sock.send(data)
 
   sock.close()
+
+
+def listen(sock):
+  while True:
+    data = sock.recv(1024)
+    message = data.decode()
+    print(message)
 
 
 main()
