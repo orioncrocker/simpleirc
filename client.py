@@ -31,7 +31,7 @@ def main():
     message = sys.stdin.readline()[:-1]
     data = message.encode()
     sock.send(data)
-    if message == '\q':
+    if message == '\q' or message == '\quit':
       connected = False
 
   read.join()

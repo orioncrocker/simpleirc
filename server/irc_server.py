@@ -12,6 +12,7 @@ import socket
 import threading
 from server.room import Room
 from server.room import Client
+from server.commands import *
 
 class IRCServer():
 
@@ -23,86 +24,26 @@ class IRCServer():
     self.shutdown = False
     self.clients = []
     self.rooms = []
-
-
-  def commands(self, command, client, room):
-
-    def quit():
-      client.dm('\client_requested_quit')
-      return False
-
-    def ls(command):
-      print(command)
-
-    def print_help():
-      send_help = 'Commands available:\n'
-      for i in commands:
-        send_help += '\t\\' + str(i) + '\t:\t' + str(commands[i]) + '\n'
-      client.dm(send_help)
-
-    def join(command):
-      print(command)
-
-    def leave(command):
-      print(command)
-
-    def create(command):
-      print(command)
-
-    def rooms():
-      print("Rooms available to join:")
-      for room in self.rooms:
-        print(str(room.name))
-
-    def users(command):
-      print(command)
-
-    commands = {'q' : 'quit - disconnect from the server',
-                'ls' : 'list - list based on an argument\n\t\t\t' + 
-                      '\ls users\n\t\t\t' + 
-                      '\ls rooms',
-                'h' : 'help - displays the list you are currently reading',
-                'j' : 'join - join a selected room\n\t\t\t' +
-                      '\j example_room',
-                'l' : 'leave - leave a selected room\n\t\t\t' +
-                      '\l example_room',
-                'cr' : 'create - creates a new chat room\n\t\t\t' +
-                      '\cr room_name room_message',
-                'u' : r'users - lists users in room\n\t\t\t\u arg_room',
-                'r' : 'rooms - lists rooms you are currently in'}
-
-    command = command[1:]
-    args = command.split(' ')[1:]
-
-    if command[0] in commands:
-      if command == 'q':
-        return quit()
-      elif command == 'ls':
-        ls(args)
-      elif command == 'h':
-        print_help()
-    else:
-      client.dm("Command not recognized. Try \h for guidance.")
-    return True
+    self.ban_list = []
 
 
   def listen_to_client(self, client, current_room):
     connected = True
     current_room.join(client)
 
-    while connected:
+    while connected and not self.shutdown:
       data = client.connection.recv(1024)
       if data:
         message = data.decode()
 
         if message[0] == '\\':
-          connected = self.commands(message, client, current_room)
+          connected = client_cmds(message, client, self)
           
         else:
-          message = "<" + client.name + "> " + message
-          print(message)
+          message = client.name + ' ' + message
           current_room.broadcast(message)
 
+    print(str(client.name) + ' disconnecting.')
     current_room.leave(client)
     self.clients.remove(client)
     client.connection.close()
@@ -110,33 +51,10 @@ class IRCServer():
 
 
   def cmd_center(self):
-    commands = ['stop',
-                'say',
-                'kick',
-                'ban',
-                'move']
-
     while not self.shutdown:
       command = sys.stdin.readline()[:-1]
-      args = command.split(' ')
-      cmd = args[0]
-
-      if cmd in commands:
-        if cmd == 'stop':
-          for room in self.rooms:
-            room.broadcast('Shutting down server!')
-          self.shutdown = True
-
-        elif cmd == 'say':
-          message = ''
-          for arg in args:
-            message += arg + ' '
-          for room in self.rooms:
-            room.broadcast(message)
-      
-      else:
-        continue      
       sys.stdin.flush()
+      self.shutdown = server_cmds(command, self)
 
 
   def start(self):
@@ -151,7 +69,7 @@ class IRCServer():
     # list of client threads
     client_procs = []
 
-    # create default room
+    # create defaul room
     lobby = Room('the lobby', 'Use command \h for help!')
     self.rooms.append(lobby)
 

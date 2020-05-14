@@ -11,11 +11,12 @@ class Client():
 
   def __init__(self, name, connection, address):
     if not name:
-      self.name = address
+      self.name = '<'+address+'>'
     else:
-      self.name = name
+      self.name = '<'+name+'>'
     self.connection = connection
     self.address = address
+    self.rooms = []
 
 
   def dm(self, message):
@@ -23,15 +24,20 @@ class Client():
     self.connection.send(message)
 
 
+  def change_name(self, name):
+    self.name = '<'+name+'>'
+
+
 class Room():
 
   def __init__(self, name, greeting):
-    self.name = name
+    self.name = '['+name+']'
     self.greeting = greeting
     self.clients = []
 
 
   def broadcast(self, message):
+    message = self.name + ' ' + message
     print(message)
     for client in self.clients:
       client.dm(message)
@@ -40,7 +46,7 @@ class Room():
   def join(self, client):
     self.clients.append(client) 
     client.dm('Welcome to ' + self.name + '\n' + self.greeting + '\n')
-    message = client.name + ' joined ' + self.name
+    message = client.name + ' has joined ' + self.name
     self.broadcast(message)
 
 
