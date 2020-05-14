@@ -7,7 +7,6 @@
 # 	Chatroom for simple_irc
 ################################################################################################
 
-
 class Client():
 
   def __init__(self, name, connection, address):
@@ -33,22 +32,20 @@ class Room():
 
 
   def broadcast(self, message):
-    message = message.encode()
+    print(message)
     for client in self.clients:
-      client.connection.send(message)
+      client.dm(message)
 
 
   def join(self, client):
     self.clients.append(client) 
-    client.dm('Welcome to ' + self.name + '\n' + self.greeting)
-    self.broadcast(str(client.name) + ' joined on ' + str(client.address))
+    client.dm('Welcome to ' + self.name + '\n' + self.greeting + '\n')
     message = client.name + ' joined ' + self.name
-    print(message)
+    self.broadcast(message)
 
 
   def leave(self, client):
-    client.dm('Leaving ' + self.name)
     self.clients.remove(client)
-    self.broadcast(str(client.name) + ' left the room.')
+    client.dm('Left ' + self.name)
     message = client.name + ' left ' + self.name
-    print(message)
+    self.broadcast(message)
