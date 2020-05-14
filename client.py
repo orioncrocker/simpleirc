@@ -34,8 +34,9 @@ def main():
 def listen(sock):
   while True:
     data = sock.recv(1024)
-    message = data.decode()
-    print(message)
+    if data:
+      message = data.decode()
+      print(message)
 
 
 main()
