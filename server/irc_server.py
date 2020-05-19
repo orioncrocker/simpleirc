@@ -31,7 +31,7 @@ class IRCServer():
     while not self.shutdown:
       command = sys.stdin.readline()[:-1]
       sys.stdin.flush()
-      self.shutdown = server_cmds(command, self)
+      server_cmds(command, self)
 
 
   def listen_to_client(self, client, current_room):
@@ -43,16 +43,16 @@ class IRCServer():
         data = client.connection.recv(1024)
         if data:
           message = data.decode()
-
           if message[0] == '\\':
             client_cmds(message, client, self)
-            
           else:
             message = client.name + ' ' + message
             current_room.broadcast(message)
 
       except socket.timeout:
         continue
+      except ConnectionResetError:
+        client.connected = False
 
     print(str(client.name) + ' disconnecting.')
     # remove from all rooms lists
@@ -77,7 +77,7 @@ class IRCServer():
     # list of client threads
     client_procs = []
 
-    # create defaul room
+    # create default room
     lobby = Room('the lobby', 'Use command \h for help!')
     self.rooms.append(lobby)
 

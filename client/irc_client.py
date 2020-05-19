@@ -11,14 +11,12 @@ import sys
 import socket
 import threading
 
-connected = False
-
 class IRCClient():
 
   def __init__(self, host='localhost', port=2000):
     self.host=host
     self.port=port
-    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.connected=False
     
 
@@ -28,13 +26,12 @@ class IRCClient():
         data = self.sock.recv(1024)
         if data:
           message = data.decode()
-          if '\disconnect_from_server' in message:
-            self.connected = False
-          else:
-            print(message)
+          print(message)
 
       except socket.timeout:
         continue
+      except ConnectionResetError:
+        self.connected = False
 
 
   def start(self):
@@ -42,24 +39,26 @@ class IRCClient():
       self.sock.settimeout(1)
       self.sock.connect((self.host, self.port))
       self.connected = True
-
       read = threading.Thread(target=self.listen)
       read.start()
 
       while self.connected:
         message = sys.stdin.readline()[:-1]
         data = message.encode()
-        self.sock.send(data)
+        try:
+          self.sock.send(data)
+        except BrokenPipeError:
+          print("Can't connect to server!")
+          self.connected = False
         if message == '\q' or message == '\quit':
           self.connected = False
 
       read.join()
       self.sock.close()
-      print("Disconnected from server " + str(self.host) + ":" + str(self.port))
+      print("Disconnected from " + str(self.host) + ":" + str(self.port))
 
     except ConnectionRefusedError:
       print("Could not connect to specified host IP and port, no response.")
-
 
 
 if __name__ == '__main__':
