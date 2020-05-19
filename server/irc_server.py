@@ -27,34 +27,42 @@ class IRCServer():
     self.ban_list = []
 
 
-  def listen_to_client(self, client, current_room):
-    connected = True
-    current_room.join(client)
-
-    while connected and not self.shutdown:
-      data = client.connection.recv(1024)
-      if data:
-        message = data.decode()
-
-        if message[0] == '\\':
-          connected = client_cmds(message, client, self)
-          
-        else:
-          message = client.name + ' ' + message
-          current_room.broadcast(message)
-
-    print(str(client.name) + ' disconnecting.')
-    current_room.leave(client)
-    self.clients.remove(client)
-    client.connection.close()
-    print(str(client.name) + ' disconnected')
-
-
   def cmd_center(self):
     while not self.shutdown:
       command = sys.stdin.readline()[:-1]
       sys.stdin.flush()
       self.shutdown = server_cmds(command, self)
+
+
+  def listen_to_client(self, client, current_room):
+    current_room.join(client)
+    client.connection.settimeout(1)
+
+    while client.connected and not self.shutdown:
+      try:
+        data = client.connection.recv(1024)
+        if data:
+          message = data.decode()
+
+          if message[0] == '\\':
+            client_cmds(message, client, self)
+            
+          else:
+            message = client.name + ' ' + message
+            current_room.broadcast(message)
+
+      except socket.timeout:
+        continue
+
+    print(str(client.name) + ' disconnecting.')
+    # remove from all rooms lists
+    for room in self.rooms:
+      if client in room.clients:
+        room.leave(client)
+    # remove from master client list
+    self.clients.remove(client)
+    client.connection.close()
+    print(str(client.name) + ' disconnected')
 
 
   def start(self):

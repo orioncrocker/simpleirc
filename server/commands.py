@@ -11,11 +11,11 @@
 def client_cmds(cmd, client, server):
 
   def quit():
-    client.dm('\client_requested_quit')
-    return False
+    client.dm('\disconnect_from_server')
+    client.connected = False
 
-  def ls(cmd):
-    print(cmd)
+  def ls(arg):
+    print(arg)
 
   def print_help():
     send_help = 'Commands available:\n'
@@ -23,22 +23,30 @@ def client_cmds(cmd, client, server):
       send_help += '\\' + str(i) + '\t:\t' + str(cmds[i]) + '\n'
     client.dm(send_help)
 
-  def join(cmd):
-    print(cmd)
+  def change(args):
+    old_name = client.name
+    client.name = '<'+str(' '.join(args))+'>'
+    message = old_name + ' has changed name to ' + client.name
+    for room in server.rooms:
+      if client in room.clients:
+        room.broadcast(message)
 
-  def leave(cmd):
-    print(cmd)
+  def join(arg):
+    print(arg)
 
-  def create(cmd):
-    print(cmd)
+  def leave(arg):
+    print(arg)
+
+  def create(arg):
+    print(arg)
 
   def rooms():
     print("Rooms available to join:")
     for room in self.rooms:
       print(str(room.name))
 
-  def users(cmd):
-    print(cmd)
+  def users(arg):
+    print(arg)
 
   spacer = '\n\t\t\t'
   cmds = {'quit'  : 'quit - disconnect from the server',
@@ -48,6 +56,8 @@ def client_cmds(cmd, client, server):
                     spacer + '\list rooms',
           'help'  : 'help - displays the list you are currently reading',
           'h'     : '',
+          'ch'    : 'change name - change username from default to something else',
+          'change': '\t\ch my_name',
           'join'  : 'join - join a selected room',
           'j'     : '\t\join example_room'+
                     spacer + '\j different_room',
@@ -56,28 +66,23 @@ def client_cmds(cmd, client, server):
                     spacer + '\l room_name',
           'create': 'create - creates a new chat room other users can join.',
           'cr'    : '\t\create room_name room_message' +
-                    spacer + '\cr room_name room_message',
-          'users' : 'users - lists users in room',
-          'u'     : '\t' + r'\users a_room' +
-                    spacer + r'\u some_room',
-          'rooms' : r'\rooms - lists rooms you are currently in',
-          'r'     : ''}
+                    spacer + '\cr room_name room_message'}
 
   args = cmd.split(' ')
   cmd = args[0][1:]
   args = args[1:]
-  print(cmd)
 
   if cmd in cmds:
     if cmd == 'q' or cmd == 'quit':
       return quit()
-    elif cmd == 'ls':
+    elif cmd == 'ls' or cmd == 'list':
       ls(args)
-    elif cmd == 'h':
+    elif cmd == 'h' or cmd == 'help':
       print_help()
+    elif cmd == 'ch' or cmd == 'change':
+      change(args)
   else:
     client.dm("Command not recognized. Try \h for guidance.")
-  return True
 
 
 def server_cmds(cmd, server):
@@ -94,7 +99,10 @@ def server_cmds(cmd, server):
   if cmd in cmds:
     if cmd == 'stop':
       for room in server.rooms:
-        room.broadcast('Shutting down the server!')
+        room.broadcast('The server is shutting down!')
+        for client in room.clients:
+          client.dm('\disconnect_from_server')
+          client.connected = False
       return True
 
     elif cmd == 'say':
