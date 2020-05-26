@@ -1,17 +1,18 @@
-################################################################################################
+###########################################################
 # Author: Orion Crocker
 # Filename: cmds.py
 # Date: 05/14/20
 # 
 # Commands
 # 	Server and client cmds for simpleirc
-################################################################################################
+###########################################################
 
 from server.room import Room
 
+
 def client_cmds(cmd, client, server):
 
-  def quit():
+  def leave_server():
     client.connected = False
 
   def ls(arg):
@@ -35,6 +36,9 @@ def client_cmds(cmd, client, server):
         message = 'All rooms available:'
         for room in server.rooms:
           message += '\n' + room.name
+        message += '\nRooms you are currently in:'
+        for room in client.rooms:
+          message += '\n' + room.name
         client.dm(message)
 
   def print_help():
@@ -43,25 +47,37 @@ def client_cmds(cmd, client, server):
       send_help += '\n\\' + str(i) + '\t:\t' + str(cmds[i])
     client.dm(send_help)
 
-  def change(args):
+  def change(arg):
     old_name = client.name
-    client.name = '<'+args+'>'
+    client.name = '<'+arg+'>'
     message = old_name + ' has changed name to ' + client.name
     for room in server.rooms:
       if client in room.clients:
         room.broadcast(message)
 
   def join(arg):
-    print(arg)
+    found = False
+    to_join = ''
+    arg = '['+arg+']'
+    for room in server.rooms:
+      if room.name == arg:
+        found = True
+        to_join = room
+        break
+
+    if not found:
+      client.dm("Couldn't find room " + arg + ".")
+      return
+
+    to_join.join(client)
 
   def leave(arg):
     print(arg)
 
   def create(args):
     args = args.split(',')
-    print(args)
     if len(args) < 1:
-      client.dm("Must at least provide name for new room!\nEx: \cr 'room_name' 'room_greeting'")
+      client.dm("Must at least provide name for new room!\nEx: \cr room_name, room_greeting")
     else:
       name = args[0]
       greeting = ''
@@ -70,7 +86,6 @@ def client_cmds(cmd, client, server):
       new_room = Room(name, greeting)
       server.rooms.append(new_room)
       client.dm('Created new room ' + name)
-    
 
   spacer = '\n\t\t\t'
   cmds = {'quit'  : 'quit - disconnect from the server',
@@ -98,13 +113,17 @@ def client_cmds(cmd, client, server):
 
   if cmd in cmds:
     if cmd == 'q' or cmd == 'quit':
-      return quit()
+      leave_server()
     elif cmd == 'ls' or cmd == 'list':
       ls(args)
     elif cmd == 'h' or cmd == 'help':
       print_help()
     elif cmd == 'ch' or cmd == 'change':
       change(args)
+    elif cmd == 'j' or cmd == 'join':
+      join(args)
+    elif cmd == 'l' or cmd == 'leave':
+      leave(args)
     elif cmd == 'cr' or cmd == 'create':
       create(args)
   else:
