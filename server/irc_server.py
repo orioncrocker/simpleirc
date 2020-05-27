@@ -47,7 +47,7 @@ class IRCServer:
           if message[0] == '\\':
             client_cmds(message, client, self)
           else:
-            message = client.name + ' ' + message
+            message = '<' + client.name + '> ' + message
             for room in client.rooms:
               room.broadcast(message)
 
@@ -58,9 +58,8 @@ class IRCServer:
 
     print(str(client.name) + ' disconnecting.')
     # remove from all rooms lists
-    for room in self.rooms:
-      if client in room.clients:
-        room.leave(client)
+    for room in client.rooms:
+      room.leave(client)
     # remove from master client list
     self.clients.remove(client)
     client.connection.close()
