@@ -49,13 +49,16 @@ def client_cmds(cmd, client, server):
       send_help += '\n\\' + str(i) + '\t:\t' + str(cmds[i])
     client.dm(send_help)
 
-  def change(arg):
+  def name(arg):
     old_name = client.name
-    client.name = arg
-    message = '<' + old_name + '> has changed name to <' + client.name + '>\n'
-    for room in server.rooms:
-      if client in room.clients:
-        room.broadcast(message)
+    if not arg:
+      client.dm('Your name is ' + client.name)
+    else:
+      client.name = arg
+      message = '<' + old_name + '> has changed name to <' + client.name + '>'
+      for room in server.rooms:
+        if client in room.clients:
+          room.broadcast(message)
 
   def join(args):
     args = args.split(',')
@@ -130,8 +133,9 @@ def client_cmds(cmd, client, server):
                     spacer + '\list rooms',
           'help'  : 'help - displays the list you are currently reading',
           'h'     : '',
-          'change': 'change name - change username from default to something else',
-          'ch'    : '\t\ch my_name',
+          'name'  : 'change name - change username from default to something else',
+          'n'     : '\t use \name to see what your current username is' + 
+                    spacer + '\t\name my_name',
           'join'  : 'join - join a selected room',
           'j'     : '\t\join example_room',
           'leave' : 'leave - leave a selected room',
@@ -162,8 +166,8 @@ def client_cmds(cmd, client, server):
       ls(args)
     elif cmd == 'h' or cmd == 'help':
       print_help()
-    elif cmd == 'ch' or cmd == 'change':
-      change(args)
+    elif cmd == 'n' or cmd == 'name':
+      name(args)
     elif cmd == 'j' or cmd == 'join':
       join(args)
     elif cmd == 'l' or cmd == 'leave':
