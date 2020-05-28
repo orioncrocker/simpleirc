@@ -36,7 +36,7 @@ class Room:
   def __init__(self, name, greeting):
     self.name = name
     if not greeting:
-      greeting = 'Welcome to [' + self.name + ']'
+      greeting = 'Welcome to [' + self.name + ']!'
     self.greeting = greeting
     self.clients = []
 

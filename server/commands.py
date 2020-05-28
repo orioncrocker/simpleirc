@@ -82,10 +82,12 @@ def client_cmds(cmd, client, server):
       return
     name = args[0]
     greeting = ''
-    if len(args) > 2:
+    if len(args) >= 2:
       greeting = str(' '.join(args[1:]))
+      print(greeting)
       if greeting[0] == ' ':
         greeting = greeting[1:]
+    print(greeting)
     new_room = Room(name, greeting)
     server.rooms.append(new_room)
     client.dm('Created new room [' + new_room.name + ']')
@@ -99,7 +101,6 @@ def client_cmds(cmd, client, server):
     message = str(','.join(args[1:]))
     if message[0] == ' ':
       message = message[1:]
-    message = '<' + client.name + '> ' + message
     recipient = False
     for user in server.clients:
       if user.name == name:
@@ -109,6 +110,7 @@ def client_cmds(cmd, client, server):
       client.dm('No user named <' + name + '>')
       return
 
+    message = '<' + client.name + ' -> ' + name + '> ' + message
     recipient.dm(message)
     client.dm(message)
 

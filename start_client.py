@@ -11,13 +11,14 @@ import sys
 import client
 
 def main():
-  if len(sys.argv) < 3:
-    print("Please enter the destination address and port")
-    print("Example: python3 client.py 192.168.0.12 2000")
-    quit()
+  if len(sys.argv) > 2:
+    host = sys.argv[1]
+    port = int(sys.argv[2])
+  else:
+    # deault server config
+    host = '152.44.40.87'
+    port = 2000
 
-  host = sys.argv[1]
-  port = int(sys.argv[2])
   chat = client.IRCClient(host=host, port=port)
   chat.start()
 
