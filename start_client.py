@@ -15,11 +15,7 @@ def main():
   host = '152.44.40.87'
   port = 2020
 
-
   if len(sys.argv) > 2:
-    print(sys.argv[1])
-    print(sys.argv[2])
-
     host = sys.argv[1]
     port = int(sys.argv[2])
 
