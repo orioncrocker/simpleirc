@@ -50,10 +50,19 @@ def client_cmds(cmd, client, server):
     client.dm(send_help)
 
   def name(arg):
-    old_name = client.name
     if not arg:
       client.dm('Your name is ' + client.name)
     else:
+      for user in server.clients:
+        if user.name == arg:
+          client.dm('Another user already has that name!')
+          return
+
+      if ',' in arg:
+        client.dm('Cannot include commas in usernames!')
+        return
+
+      old_name = client.name
       client.name = arg
       message = '<' + old_name + '> has changed name to <' + client.name + '>'
       for room in server.rooms:
@@ -61,10 +70,9 @@ def client_cmds(cmd, client, server):
           room.broadcast(message)
 
   def join(args):
-    args = args.split(',')
     for room in server.rooms:
-      for i in args:
-        if room.name == i:
+      if room.name == args:
+        if client not in room.clients:
           room.join(client)
 
   def leave(arg):
@@ -83,17 +91,22 @@ def client_cmds(cmd, client, server):
     if len(args) < 1:
       client.dm("Must at least provide name for new room!\nEx: \cr room_name, room_greeting")
       return
+
     name = args[0]
+    for room in server.rooms:
+      if name == room.name:
+        client.dm("Room with that name already exists!")
+        return
+
     greeting = ''
     if len(args) >= 2:
       greeting = str(' '.join(args[1:]))
-      print(greeting)
       if greeting[0] == ' ':
         greeting = greeting[1:]
-    print(greeting)
-    new_room = Room(name, greeting)
+    new_room = Room(name, greeting, server.log)
     server.rooms.append(new_room)
-    client.dm('Created new room [' + new_room.name + ']')
+    client.dm('Created new room [' + name + ']')
+    server.log.write(client.name + ' created new room [' + name + ']')
 
   def direct_message(args):
     args = args.split(',')
@@ -110,7 +123,7 @@ def client_cmds(cmd, client, server):
         recipient = user
 
     if not recipient:
-      client.dm('No user named <' + name + '>')
+      client.dm('No user named <' + name + '>!')
       return
 
     message = '<' + client.name + ' -> ' + name + '> ' + message
@@ -118,10 +131,10 @@ def client_cmds(cmd, client, server):
     client.dm(message)
 
   def room_message(room_num, args):
-    room_num -= 1
     rooms = len(client.rooms)
-    if room_num > rooms or room_num < 0:
+    if room_num > rooms or room_num < 1:
       return
+    room_num -= 1
     client.rooms[room_num].broadcast('<' + client.name + '> ' + args)
 
   spacer = '\n\t\t\t'
@@ -133,8 +146,8 @@ def client_cmds(cmd, client, server):
           'help'  : 'help - displays the list you are currently reading',
           'h'     : '',
           'name'  : 'change name - change username from default to something else',
-          'n'     : '\t use \name to see what your current username is' + 
-                    spacer + '\t\name my_name',
+          'n'     : "use \\" + 'name to see what your current username is' +
+                    spacer + "\\" + 'n my_name',
           'join'  : 'join - join a selected room',
           'j'     : '\t\join example_room',
           'leave' : 'leave - leave a selected room',
@@ -190,8 +203,9 @@ def server_cmds(cmd, server):
 
   if cmd in cmds:
     if cmd == 'stop':
+      server.log.write('STOP')
       for room in server.rooms:
-        room.broadcast('The server is shutting down!')
+        room.broadcast(' The server is shutting down!')
       server.shutdown = True
 
     elif cmd == 'say':

@@ -24,7 +24,7 @@ class Client:
     message = message.encode()
     try:
       self.connection.send(message)
-    except BrokenPipeError:
+    except BrokenPipeError or OSError:
       self.connected = False
 
   def change_name(self, name):
@@ -33,18 +33,19 @@ class Client:
 
 class Room:
 
-  def __init__(self, name, greeting):
+  def __init__(self, name, greeting, log):
     self.name = name
     if not greeting:
       greeting = 'Welcome to [' + self.name + ']!'
     self.greeting = greeting
     self.clients = []
+    self.log = log
 
   def broadcast(self, message):
     message = '[' + self.name + ']' + message
     for client in self.clients:
       client.dm(message)
-    print(message)
+    self.log.write(message)
 
   def join(self, client):
     self.clients.append(client) 
@@ -57,5 +58,5 @@ class Room:
     client.rooms.remove(self)
     self.clients.remove(client)
     client.dm('Left [' + self.name + ']')
-    message = '<' + client.name + '> left the room.\n'
+    message = '<' + client.name + '> left the room.'
     self.broadcast(message)

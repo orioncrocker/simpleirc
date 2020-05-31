@@ -10,8 +10,8 @@
 import sys
 import socket
 import threading
-from server.room import Room
-from server.room import Client
+from server.room import *
+from server.log import *
 from server.commands import *
 
 
@@ -20,12 +20,12 @@ class IRCServer:
   def __init__(self, port=2000, max_clients=10):
     self.host = ''
     self.port = port
+    self.log = Log(port)
     self.max_clients = max_clients
     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     self.shutdown = False
     self.clients = []
     self.rooms = []
-    self.ban_list = []
 
   def cmd_center(self):
     while not self.shutdown:
@@ -36,7 +36,6 @@ class IRCServer:
   def listen_to_client(self, client):
     # join default lobby room
     self.rooms[0].join(client)
-
     client.connection.settimeout(1)
 
     while client.connected and not self.shutdown:
@@ -56,14 +55,15 @@ class IRCServer:
       except ConnectionResetError:
         client.connected = False
 
-    print(str(client.name) + ' disconnecting.')
+    self.log.write(str(client.name) + ' is disconnecting.')
     # remove from all rooms lists
-    for room in client.rooms:
-      room.leave(client)
+    rooms = len(client.rooms)-1
+    for room in range(rooms,-1,-1):
+      client.rooms[room].leave(client)
     # remove from master client list
     self.clients.remove(client)
     client.connection.close()
-    print(str(client.name) + ' disconnected')
+    self.log.write(str(client.name) + ' has disconnected.')
 
   def start(self):
     self.sock.settimeout(1)
@@ -78,14 +78,10 @@ class IRCServer:
     client_threads = []
 
     # create default room
-    lobby = Room('the lobby', 'Use command \h for help!')
+    lobby = Room('the lobby', 'Use command \h for help!', self.log)
     self.rooms.append(lobby)
 
-    # testing purposes
-    another = Room('test room', 'this is a test')
-    self.rooms.append(another)
-
-    print("Now listening for clients on port " + str(self.port))
+    self.log.write("Now listening for clients on port " + str(self.port))
     while not self.shutdown:
       try:
         connection, address = self.sock.accept()
@@ -95,7 +91,7 @@ class IRCServer:
         thread = threading.Thread(target=self.listen_to_client, args=[new_client])
         thread.start()
         client_threads.append(thread)
-        print("Clients connected: " + str(len(self.clients)))
+        self.log.write("Clients connected: " + str(len(self.clients)))
 
       except socket.timeout:
         continue
@@ -103,3 +99,16 @@ class IRCServer:
     command_thread.join()
     for thread in client_threads:
       thread.join()
+
+    client_num = len(self.clients)
+    self.log.write('Shutting down with ' + str(client_num) + ' clients.')
+    room_client_num = 0
+    for room in self.rooms:
+      room_client_num += len(room.clients)
+    if client_num == 0 and room_client_num == 0:
+      self.log.write('\nHEALTHY SHUTDOWN.')
+    else:
+      message = '\nUNHEALTHY SHUTDOWN\nClients: ' + str(client_num) +\
+        'Clients in rooms: ' + str(room_client_num)
+      self.log.write(message)
+    self.log.time()
