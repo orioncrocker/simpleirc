@@ -101,7 +101,6 @@ class IRCServer:
       thread.join()
 
     client_num = len(self.clients)
-    self.log.write('Shutting down with ' + str(client_num) + ' clients.')
     room_client_num = 0
     for room in self.rooms:
       room_client_num += len(room.clients)
@@ -111,4 +110,3 @@ class IRCServer:
       message = 'UNHEALTHY SHUTDOWN\nClients: ' + str(client_num) +\
         'Clients in rooms: ' + str(room_client_num)
       self.log.write(message)
-    self.log.time()

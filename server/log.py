@@ -14,7 +14,7 @@ from datetime import datetime
 
 
 def timestamp():
-    return datetime.today().strftime("%m:%d:%Y__%H:%M:%S")
+    return datetime.today().strftime("%m:%d:%Y-%H:%M:%S")
 
 
 class Log:
@@ -36,7 +36,8 @@ class Log:
                         '_' + str(date) + '.log'
         self.path = path + '/' + self.filename
         with open(self.path, 'w') as file:
-            file.write(str(date) + '\n' + str(hostname) + ':' + str(port) + '\n\n')
+            file.write(str(date) + '\nHost machine:' + str(hostname) +\
+                       str(port) + '\n\n')
 
     def write(self, text):
         if text:
