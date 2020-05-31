@@ -106,9 +106,9 @@ class IRCServer:
     for room in self.rooms:
       room_client_num += len(room.clients)
     if client_num == 0 and room_client_num == 0:
-      self.log.write('\nHEALTHY SHUTDOWN.')
+      self.log.write('HEALTHY SHUTDOWN')
     else:
-      message = '\nUNHEALTHY SHUTDOWN\nClients: ' + str(client_num) +\
+      message = 'UNHEALTHY SHUTDOWN\nClients: ' + str(client_num) +\
         'Clients in rooms: ' + str(room_client_num)
       self.log.write(message)
     self.log.time()

@@ -13,6 +13,10 @@ import socket
 from datetime import datetime
 
 
+def timestamp():
+    return datetime.today().strftime("%m:%d:%Y__%H:%M:%S")
+
+
 class Log:
 
     def __init__(self, port):
@@ -21,22 +25,21 @@ class Log:
         self.boot(port)
 
     def boot(self, port):
+        # check if logs directory exists
+        path = os.path.abspath('server/logs')
+        if not os.path.exists(path):
+            os.makedirs(path)
+
         hostname = socket.gethostname()
-        date = datetime.today().strftime("%m:%d:%Y_%H:%M:%S")
+        date = timestamp()
         self.filename = 'simpleirc_' + str(hostname) + ':' + str(port) +\
                         '_' + str(date) + '.log'
-        self.path = os.path.abspath('server/logs/' + self.filename)
+        self.path = path + '/' + self.filename
         with open(self.path, 'w') as file:
             file.write(str(date) + '\n' + str(hostname) + ':' + str(port) + '\n\n')
 
     def write(self, text):
         if text:
-            date = datetime.today().strftime('%H:%M%S')
             with open(self.path, 'a') as file:
-                file.write(str(date) + str(text) + '\n')
+                file.write(str(timestamp()) + '\t' + str(text) + '\n')
             print(text)
-
-    def time(self):
-        date = datetime.today().strftime("%m:%d:%Y_%H:%M:%S")
-        with open(self.path, 'a') as file:
-            file.write(str(date) + '\n')
