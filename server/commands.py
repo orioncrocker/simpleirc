@@ -117,13 +117,12 @@ def client_cmds(cmd, client, server):
     recipient.dm(message)
     client.dm(message)
 
-  def room_message(num, args):
-    num -= 1
-    if len(client.rooms) < num:
+  def room_message(room_num, args):
+    room_num -= 1
+    rooms = len(client.rooms)
+    if room_num > rooms or room_num < 0:
       return
-
-    room = client.rooms[num]
-    room.broadcast('<' + client.name + '> ' + args)
+    client.rooms[room_num].broadcast('<' + client.name + '> ' + args)
 
   spacer = '\n\t\t\t'
   cmds = {'quit'  : 'quit - disconnect from the server',
@@ -183,10 +182,7 @@ def client_cmds(cmd, client, server):
 
 def server_cmds(cmd, server):
   cmds = ['stop',
-          'say',
-          'kick',
-          'ban',
-          'move']
+          'say']
 
   args = cmd.split(' ')
   cmd = args[0]
