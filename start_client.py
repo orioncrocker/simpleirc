@@ -11,16 +11,17 @@ import sys
 import client
 
 def main():
-  # deault server config
-  host = '152.44.40.87'
-  port = 2020
-
   if len(sys.argv) > 2:
     host = sys.argv[1]
     port = int(sys.argv[2])
+  else:
+    host = 'irc.orionc.dev'
+    port = 2020
 
-  chat = client.IRCClient(host=host, port=port)
-  chat.start()
+  name = input('Username: ')
+
+  chat = client.IRCClient(host, port)
+  chat.start(name)
 
 
 if __name__ == '__main__':

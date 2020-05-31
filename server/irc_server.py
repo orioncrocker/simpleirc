@@ -34,6 +34,15 @@ class IRCServer:
       server_cmds(command, self)
 
   def listen_to_client(self, client):
+    name = client.connection.recv(1024).decode()
+    unique_name = True
+    for user in self.clients:
+      if name == user.name:
+        unique_name = False
+        client.dm('Non-unique username. Defaulting to IP address.')
+    if unique_name:
+      client.name = name
+
     # join default lobby room
     self.rooms[0].join(client)
     client.connection.settimeout(1)
@@ -55,7 +64,7 @@ class IRCServer:
       except ConnectionResetError:
         client.connected = False
 
-    self.log.write(str(client.name) + ' is disconnecting.')
+    self.log.write('<' + str(client.name) + '> is disconnecting.')
     # remove from all rooms lists
     rooms = len(client.rooms)-1
     for room in range(rooms,-1,-1):
@@ -63,7 +72,7 @@ class IRCServer:
     # remove from master client list
     self.clients.remove(client)
     client.connection.close()
-    self.log.write(str(client.name) + ' has disconnected.')
+    self.log.write('<' + str(client.name) + '> has disconnected.')
 
   def start(self):
     self.sock.settimeout(1)
@@ -108,5 +117,5 @@ class IRCServer:
       self.log.write('HEALTHY SHUTDOWN')
     else:
       message = 'UNHEALTHY SHUTDOWN\nClients: ' + str(client_num) +\
-        'Clients in rooms: ' + str(room_client_num)
+        '\nClients in rooms: ' + str(room_client_num)
       self.log.write(message)

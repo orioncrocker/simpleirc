@@ -13,12 +13,11 @@ import threading
 
 class IRCClient():
 
-  def __init__(self, host='localhost', port=2000):
-    self.host=host
-    self.port=port
-    self.sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.connected=False
-    
+  def __init__(self, host, port):
+    self.host = host
+    self.port = port
+    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.connected = False
 
   def listen(self):
     while self.connected:
@@ -33,12 +32,12 @@ class IRCClient():
       except ConnectionResetError:
         self.connected = False
 
-
-  def start(self):
+  def start(self, name):
     try:
       self.sock.settimeout(1)
       self.sock.connect((self.host, self.port))
       self.connected = True
+      self.sock.send(name.encode())
       read = threading.Thread(target=self.listen)
       read.start()
 
