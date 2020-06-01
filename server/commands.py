@@ -142,18 +142,18 @@ def client_cmds(cmd, client, server):
           'q'     : '',
           'list'  : 'list - lists objects in server',
           'ls'    : '\t\ls users'+
-                    spacer + '\list rooms',
-          'help'  : 'help - displays the list you are currently reading',
+                    spacer + '\list rooms' +
+                    spacer + '\list specific room',
+          'help'  : 'help - displays the helpful list you are currently reading',
           'h'     : '',
-          'name'  : 'change name - change username from default to something else',
-          'n'     : "use \\" + 'name to see what your current username is' +
-                    spacer + "\\" + 'n my_name',
+          'name'  : 'username - check username, or change it to something else',
+          'n'     : '\t\\' + 'n new name',
           'join'  : 'join - join a selected room',
           'j'     : '\t\join example_room',
           'leave' : 'leave - leave a selected room',
           'l'     : '\t\leave room_name',
           'create': 'create - creates a new chat room other users can join.',
-          'cr'    : '\t\create room_name room_message',
+          'cr'    : '\t\create room_name, (optional) room_message',
           '1-9'   : 'specific server message - send a message to only one server at a time' +
                     spacer + '\\1 this message is for the first server only',
           'dm'    : 'direct message - send a message to another user.' +
